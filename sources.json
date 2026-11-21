@@ -1,0 +1,18 @@
+{
+  "$comment": "Where each repository's docs come from. In development a sibling checkout (path) is used as it is, so edits in that repository show up here at once. A build, or DOCS_SOURCES=pinned, clones repo at ref into .sources/ instead.",
+  "sources": [
+    {
+      "name": "ui",
+      "repo": "https://github.com/misty-org/misty-ui.git",
+      "ref": "main",
+      "path": "../misty-ui",
+      "install": true
+    },
+    {
+      "name": "sdk",
+      "repo": "https://github.com/misty-org/misty-sdk.git",
+      "ref": "main",
+      "path": "../misty-sdk"
+    }
+  ]
+}
