@@ -42,7 +42,7 @@ export function Markdown({ source }: { source: string }) {
     } else if (token.type === "heading") {
       groups.push({ kind: "heading", depth: token.depth, text: plain(token.text) });
     } else if (token.type === "blockquote") {
-      groups.push({ kind: "note", tokens: token.tokens });
+      groups.push({ kind: "note", tokens: token.tokens ?? [] });
     } else {
       const last = groups[groups.length - 1];
       if (last?.kind === "prose") last.tokens.push(token);

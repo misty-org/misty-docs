@@ -23,9 +23,7 @@ import {
   NavRow,
   NavRowLabel,
   Pressable,
-  Surface,
   Text,
-  TooltipProvider,
 } from "@misty/ui";
 
 import { ComponentPage, exampleForRoute } from "./Components";
