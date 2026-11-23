@@ -2,8 +2,8 @@
 // .sources/ otherwise. It also points node_modules/@misty/ui at the ui source, so the components, their
 // styles and the docs built from them are always one checkout.
 //
-//   node scripts/sync-sources.mjs          (runs before `npm run dev` and `npm run build`)
-//   DOCS_SOURCES=pinned node scripts/sync-sources.mjs   (ignore sibling checkouts)
+//   node scripts/sync_sources.mjs          (runs before `npm run dev` and `npm run build`)
+//   DOCS_SOURCES=pinned node scripts/sync_sources.mjs   (ignore sibling checkouts)
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, lstatSync, unlinkSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";

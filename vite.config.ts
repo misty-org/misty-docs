@@ -1,10 +1,10 @@
 // The docs site. `npm run dev` serves it; `npm run build` writes dist/, plain static files.
-// Each repository's docs are read from where sources.json says (see scripts/sync-sources.mjs).
+// Each repository's docs are read from where sources.json says (see scripts/sync_sources.mjs).
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
-import { resolveSources } from "./scripts/sync-sources.mjs";
+import { resolveSources } from "./scripts/sync_sources.mjs";
 
 const sources = resolveSources() as Record<string, string>;
 

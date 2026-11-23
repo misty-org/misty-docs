@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "sources": "node scripts/sync-sources.mjs",
-    "predev": "node scripts/sync-sources.mjs",
+    "sources": "node scripts/sync_sources.mjs",
+    "predev": "node scripts/sync_sources.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/sync-sources.mjs",
+    "prebuild": "node scripts/sync_sources.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b"

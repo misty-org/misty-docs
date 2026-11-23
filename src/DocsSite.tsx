@@ -4,21 +4,21 @@ import React from "react";
 import { BookOpen, Blocks, Moon, Palette, Sun } from "lucide-react";
 
 import {
-  BrandIcon,
   Button,
   CodeBlock,
+  Disclosure,
   DocsCard,
   DocsHeader,
   DocsHero,
-  DocsTitle,
   DocsLayout,
+  DocsPager,
   DocsSearch,
   DocsSwitcher,
-  Disclosure,
-  DocsPager,
+  DocsTitle,
   DocsToc,
   EmptyState,
   IconButton,
+  Mark,
   NavList,
   NavRow,
   NavRowLabel,
@@ -285,7 +285,7 @@ export function DocsSite({
           ) : null}
           <IconButton label="Source on GitHub" asChild>
             <a href={repository}>
-              <BrandIcon brand="github" label="GitHub" />
+              <Mark of="github" label="GitHub" />
             </a>
           </IconButton>
         </DocsHeader>
