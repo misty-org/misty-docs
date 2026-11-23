@@ -1,11 +1,10 @@
 import React from "react";
 import { DocsTitle, InlineLink, Surface, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text, CodeBlock } from "@misty/ui";
 
-import { allExamples, guidanceFor, props, type Example } from "./sources";
+import { loadGuidance, type Example, type PropDoc } from "./sources";
 
 const repository = "https://github.com/misty-org/misty-ui";
 
-/** Inline text from the guidance: `code` spans and **bold**, nothing else. */
 function Inline({ text }: { text: string }) {
   return (
     <>
@@ -54,8 +53,7 @@ class Boundary extends React.Component<{ children: React.ReactNode }, { error: E
   }
 }
 
-function PropsTable({ name }: { name: string }) {
-  const rows = props[name];
+function PropsTable({ name, rows }: { name: string; rows: PropDoc[] | undefined }) {
   if (!rows?.length) return null;
   return (
     <div className="grid gap-2">
@@ -95,11 +93,12 @@ function PropsTable({ name }: { name: string }) {
   );
 }
 
-/** One component: its live example, when to use it, the code that draws it and its props. */
 export function ComponentPage({ example }: { example: Example }) {
-  const guidance = guidanceFor(example.components);
+  const details = example.load();
+  const guidanceModule = loadGuidance();
+  const { Component: Preview, code, props } = React.use(details);
+  const guidance = React.use(guidanceModule).guidanceFor(example.components);
   const withProps = example.components.filter((name) => (props[name]?.length ?? 0) > 0);
-  const Preview = example.Component;
   return (
     <div className="grid gap-8">
       <div className="grid gap-2">
@@ -139,13 +138,13 @@ export function ComponentPage({ example }: { example: Example }) {
         </Section>
       ) : null}
       <Section title="Code">
-        <CodeBlock language="tsx" code={example.code} />
+        <CodeBlock language="tsx" code={code} />
       </Section>
       {withProps.length ? (
         <Section title="Props">
           <div className="grid gap-6">
             {withProps.map((name) => (
-              <PropsTable key={name} name={name} />
+              <PropsTable key={name} name={name} rows={props[name]} />
             ))}
           </div>
         </Section>
@@ -153,7 +152,3 @@ export function ComponentPage({ example }: { example: Example }) {
     </div>
   );
 }
-
-/** The component page for a route such as `components/controls/Button`. */
-export const exampleForRoute = (route: string): Example | undefined =>
-  allExamples.find((example) => `components/${example.id}` === route);

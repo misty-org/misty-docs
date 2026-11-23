@@ -1,5 +1,3 @@
-// The Misty docs, as a component: each repository's own docs, drawn with @misty/ui. The standalone
-// site (main.tsx) and misty-website (which mounts it under its own navbar and footer) both render it.
 import React from "react";
 import { BookOpen, Blocks, Moon, Palette, Sun } from "lucide-react";
 
@@ -17,27 +15,25 @@ import {
   DocsTitle,
   DocsToc,
   EmptyState,
+  ErrorState,
   IconButton,
   Mark,
   NavList,
   NavRow,
   NavRowLabel,
+  PaneLoading,
   Pressable,
   Text,
 } from "@misty/ui";
 
-import { ComponentPage, exampleForRoute } from "./Components";
+import { loadOnce } from "./load_once";
 import { Markdown } from "./Markdown";
-import { allDocs, componentGroups, sectionLines, sections, type Doc } from "./sources";
+import { allDocs, allExamples, componentGroups, sectionLines, sections, type Doc, type DocPage, type Example } from "./sources";
 
 const repository = "https://github.com/misty-org";
 
 const GoContext = React.createContext<(route: string) => void>(() => {});
 const useGo = () => React.useContext(GoContext);
-
-// ---------------------------------------------------------------------------------------------
-// The docs are split into products, each with its own sidebar: the guides for using Misty, the
-// SDK, and the design system (its rules and every component).
 
 interface Item {
   id: string;
@@ -106,7 +102,6 @@ function Sidebar({ product, route }: { product: Product; route: string }) {
             title={group.title}
             defaultOpen={group.items.some((item) => item.id === route) || group === product.groups[0]}
           >
-            {/* Room between the group's heading and its pages, so their washes never touch. */}
             <div className="pt-1.5 pb-1">
               <NavList>
                 {group.items.map((item) => (
@@ -166,12 +161,11 @@ function Home() {
   );
 }
 
-/** The heading of the article that is on screen, for the contents column to light. */
-function useActiveHeading(doc: Doc | undefined) {
+function useActiveHeading(page: DocPage | undefined) {
   const [active, setActive] = React.useState<string | undefined>();
   React.useEffect(() => {
-    setActive(doc?.headings[0]?.id);
-    const targets = (doc?.headings ?? []).map((h) => document.getElementById(h.id)).filter((el): el is HTMLElement => !!el);
+    setActive(page?.headings[0]?.id);
+    const targets = (page?.headings ?? []).map((h) => document.getElementById(h.id)).filter((el): el is HTMLElement => !!el);
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
@@ -181,28 +175,86 @@ function useActiveHeading(doc: Doc | undefined) {
     );
     targets.forEach((target) => observer.observe(target));
     return () => observer.disconnect();
-  }, [doc]);
+  }, [page]);
   return active;
 }
 
-function DocArticle({ doc, group }: { doc: Doc; group: string | undefined }) {
+function useDocPage(doc: Doc | undefined) {
+  const [, setLoaded] = React.useState(0);
+  const [failed, setFailed] = React.useState<string>();
+  const read = doc && failed !== doc.id ? doc.page() : undefined;
+  React.useEffect(() => {
+    if (!(read instanceof Promise) || !doc) return;
+    let live = true;
+    read.then(
+      () => live && setLoaded((count) => count + 1),
+      () => live && setFailed(doc.id),
+    );
+    return () => {
+      live = false;
+    };
+  }, [read, doc]);
+  return {
+    page: read instanceof Promise ? undefined : read,
+    failed: !!doc && failed === doc.id,
+    retry: () => setFailed(undefined),
+  };
+}
+
+function DocArticle({ doc, page, group }: { doc: Doc; page: DocPage; group: string | undefined }) {
   return (
     <article className="min-w-0 max-w-3xl">
-      <DocsTitle eyebrow={group} title={doc.title} lead={doc.description} />
+      <DocsTitle eyebrow={group} title={doc.title} lead={page.description} />
       <div className="mt-10">
-        <Markdown source={doc.body} />
+        <Markdown source={page.body} />
       </div>
     </article>
   );
 }
 
-/**
- * The docs. `route` is the page's address without its leading slash (`sdk/react`, empty for the front
- * page) and `onNavigate` goes to another. `top` is the height of any bar above the docs (the website's
- * navbar), which what stays in view sits below; `gutter` and `maxWidth` are the site's own page padding
- * and width. `themeToggle` adds a light/dark button, for a site that
- * has no theme of its own.
- */
+const loadComponents = loadOnce(() => import("./Components"));
+
+const styleLoads = new WeakMap<() => Promise<unknown>, () => Promise<unknown>>();
+
+function loadStyles(load: () => Promise<unknown>) {
+  let once = styleLoads.get(load);
+  if (!once) {
+    once = loadOnce(load);
+    styleLoads.set(load, once);
+  }
+  return once();
+}
+
+function ComponentRoute({ example, styles }: { example: Example; styles?: () => Promise<unknown> }) {
+  const page = loadComponents();
+  const stylesheet = styles ? loadStyles(styles) : undefined;
+  const { ComponentPage } = React.use(page);
+  if (stylesheet) React.use(stylesheet);
+  return <ComponentPage example={example} />;
+}
+
+class LoadBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    if (this.state.failed) {
+      return (
+        <ErrorState
+          inline
+          title="Couldn't load this page"
+          action={{ label: "Try again", onClick: () => this.setState({ failed: false }) }}
+        />
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const exampleForRoute = (route: string): Example | undefined =>
+  allExamples.find((example) => `components/${example.id}` === route);
+
 export function DocsSite({
   route: requested,
   onNavigate,
@@ -211,16 +263,16 @@ export function DocsSite({
   gutter,
   maxWidth,
   themeToggle = false,
+  componentStyles,
 }: {
   route: string;
   onNavigate: (route: string) => void;
   top?: string;
-  /** Draws the docs' own top bar. Off where the site's navbar carries its controls (`DocsNavControls`). */
   bar?: boolean;
-  /** The page's width and its side padding, to match the site around it. */
   gutter?: string;
   maxWidth?: string;
   themeToggle?: boolean;
+  componentStyles?: () => Promise<unknown>;
 }) {
   const go = onNavigate;
   const [light, setLight] = React.useState(false);
@@ -229,7 +281,6 @@ export function DocsSite({
     document.documentElement.dataset.theme = light ? "light" : "dark";
   }, [light, themeToggle]);
 
-  // A section's own address (`self-hosting`, `sdk`) opens its first page.
   const route = React.useMemo(() => {
     const target =
       sections.find((section) => section.id === requested)?.docs[0]?.id ??
@@ -243,9 +294,9 @@ export function DocsSite({
   const product = productOf(route);
   const doc = allDocs.find((item) => item.id === route);
   const example = exampleForRoute(route);
-  const active = useActiveHeading(doc);
+  const { page, failed, retry } = useDocPage(doc);
+  const active = useActiveHeading(page);
 
-  // The pages of this product in reading order, for the pager.
   const pages = product?.groups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.title }))) ?? [];
   const index = pages.findIndex((page) => page.id === route);
   const link = (page: (typeof pages)[number] | undefined, from: string | undefined) =>
@@ -292,9 +343,9 @@ export function DocsSite({
       }
       nav={product || route === "" ? <Sidebar product={product ?? products[0]} route={route} /> : undefined}
       toc={
-        doc && doc.headings.length > 1 ? (
+        page && page.headings.length > 1 ? (
           <DocsToc
-            items={doc.headings}
+            items={page.headings}
             active={active}
             onSelect={(id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })}
           />
@@ -302,9 +353,19 @@ export function DocsSite({
       }
     >
       {doc ? (
-        <DocArticle doc={doc} group={groupOfPage} />
+        page ? (
+          <DocArticle doc={doc} page={page} group={groupOfPage} />
+        ) : failed ? (
+          <ErrorState inline title="Couldn't load this page" action={{ label: "Try again", onClick: retry }} />
+        ) : (
+          <PaneLoading inline label={`Loading ${doc.title}`} />
+        )
       ) : example ? (
-        <ComponentPage example={example} />
+        <LoadBoundary key={route}>
+          <React.Suspense fallback={<PaneLoading inline label={`Loading ${example.title}`} />}>
+            <ComponentRoute example={example} styles={componentStyles} />
+          </React.Suspense>
+        </LoadBoundary>
       ) : route === "" ? (
         <Home />
       ) : (
@@ -318,12 +379,7 @@ export function DocsSite({
   );
 }
 
-/**
- * The docs' controls for a site's own navbar: a slash and the switcher between App, SDK and Design,
- * for the navbar to draw beside its logo when it hides the docs' own bar (`bar={false}`).
- */
 export function DocsNavControls({ route, onNavigate }: { route: string; onNavigate: (route: string) => void }) {
-  // The front page is the App docs' too, so a name is always showing.
   const current = productOf(route)?.id ?? products[0]?.id;
   return (
     <DocsSwitcher
