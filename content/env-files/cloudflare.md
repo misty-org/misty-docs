@@ -7,13 +7,13 @@ order: 2
 
 ## What it's for
 
-Every Misty server runs on your own Cloudflare account. A Cloudflare Tunnel publishes the API at `https://MISTY_HOSTNAME` with no open ports. R2 holds Library files and the nightly backups. A Worker saves notes and apps' shared state as people edit them together.
+Every Misty server runs on your own Cloudflare account. A Cloudflare Tunnel publishes the API at `https://MISTY_HOSTNAME` with no open ports. R2 holds Library files and the nightly backups. Live co-editing runs on your server, in its `misty-collab` service, not on Cloudflare.
 
-You give the setup container one API token. It finds the zone that holds `MISTY_HOSTNAME` among the zones the token can see, and the account from the zone. On every start it creates whatever is missing and finds what it made before by name, so it never makes a second copy. You never run Wrangler or the `misty` CLI.
+You give the setup container one API token. It finds the zone that holds `MISTY_HOSTNAME` among the zones the token can see, and the account from the zone. On every start it creates whatever is missing and finds what it made before by name, so it never makes a second copy. You never run the `misty` CLI.
 
 ## The account you need
 
-A Cloudflare account with your domain added as a zone, and a workers.dev subdomain turned on (Workers & Pages → Settings). Setup stops and says so if the subdomain is off. R2 must be turned on for the account, which asks for a payment method even within the free allowance.
+A Cloudflare account with your domain added as a zone. R2 must be turned on for the account, which asks for a payment method even within the free allowance.
 
 ## Values you set
 
@@ -30,7 +30,6 @@ Create an account API token with exactly these permissions, limited to your acco
 | Scope | Permission | Why |
 | --- | --- | --- |
 | Account | Cloudflare Tunnel: Edit | Creates the tunnel and sets its route. |
-| Account | Workers Scripts: Edit | Uploads the Worker and its secrets. |
 | Account | Workers R2 Storage: Edit | Creates the two buckets and sets their CORS, lock and expiry rules. |
 | Account | Account API Tokens: Edit | Creates the two bucket-scoped R2 tokens. |
 | Zone (your zone) | Zone: Read | Finds the zone that holds your hostname, and its account. |
@@ -47,15 +46,13 @@ Names come from `MISTY_HOSTNAME`, with dots as dashes; a hostname longer than 40
 | Library bucket | `misty-<host>-library` | Uploads, attachments, avatars, and images in notes. |
 | Backup bucket | `misty-<host>-backups` | Encrypted nightly database dumps, under a 30-day lock. |
 | Two R2 tokens | `misty-<host> library`, `misty-<host> backups` | One bucket each; the API holds only the Library one. |
-| Collaboration Worker | `misty-<host>-collab` | Saves and co-edits notes and apps people edit together. |
 
 ## Get the values
 
 1. Sign in at [dash.cloudflare.com](https://dash.cloudflare.com), add your domain and change its nameservers to the ones Cloudflare shows. Wait until the domain says Active.
-2. Open Workers & Pages → Settings and turn on a workers.dev subdomain.
-3. Open R2 Object Storage and turn it on.
-4. Create an account API token with the permissions above, limited to your account and zone. Copy it; Cloudflare shows it once.
-5. Write the token into `~/.misty/.env/server/cloudflare.env`.
+2. Open R2 Object Storage and turn it on.
+3. Create an account API token with the permissions above, limited to your account and zone. Copy it; Cloudflare shows it once.
+4. Write the token into `~/.misty/.env/server/cloudflare.env`.
 
 ```bash
 # ~/.misty/.env/server/cloudflare.env

@@ -32,7 +32,7 @@ All your settings live in three files in `~/.misty/.env/server/`, one per servic
 | File | What it's for | Page |
 | --- | --- | --- |
 | `misty.env` | The server's own settings: its hostname, its name, the websites allowed to call it and who may sign in. | [Set up misty.env](#/env-files/misty) |
-| `cloudflare.env` | Publishes the server over HTTPS, stores files and backups in R2 and runs Misty's Worker. | [Set up cloudflare.env](#/env-files/cloudflare) |
+| `cloudflare.env` | Publishes the server over HTTPS and stores files and backups in R2. | [Set up cloudflare.env](#/env-files/cloudflare) |
 | `google.env` | Lets people sign in to your server with their Google account. | [Set up google.env](#/env-files/google) |
 
 > The repository has no example env files. Write each file yourself, using the pages above.
@@ -81,12 +81,13 @@ docker compose logs setup
 | `postgres` | Always | The database (PostgreSQL with pgvector). |
 | `migrate` | Once per start | Applies database migrations. |
 | `api` | Always | Accounts, spaces, chat, files and the apps each space adds. |
+| `misty-collab` | Always | Live co-editing: the rooms where people and agents edit apps' documents and files together. |
 | `cloudflared` | Always | Publishes the API at `https://MISTY_HOSTNAME` through the Tunnel. |
 | `backups` | Always | Encrypted database backups to R2 every night at 03:00 UTC. |
 | `alerts` | Always | Records an alert when the API fails its health check, fails 5% of requests, runs low on disk or misses a backup. The console and the owner's app show it. Nothing is emailed. |
 | `console` | Always, on `127.0.0.1:7070` only | The operator console. |
 
-A Cloudflare Worker also runs on your Cloudflare account. The setup container deploys it for you. See [cloudflare.env](#/env-files/cloudflare).
+`misty-collab` runs from the same image as the API, and the tunnel sends `/v1/collab` on your hostname to it, so live co-editing needs nothing on Cloudflare and nothing to set up.
 
 ## The setup container
 
@@ -95,13 +96,12 @@ On the first start, the setup container:
 - Generates one root secret into the stack's `secrets` volume.
 - Finds your Cloudflare zone and account from `MISTY_HOSTNAME`.
 - Creates the Cloudflare Tunnel, the DNS record, two R2 buckets and their credentials.
-- Deploys the Worker.
 
 Later starts find the same resources by name and never replace the root secret. Rotating a key never touches data. Your data is only removed if you run `docker compose down --volumes` and delete the R2 buckets.
 
 ## Secrets
 
-The server has one secret of its own, `MISTY_SERVER_SECRET`, in the `secrets` volume. Setup derives every key from it: database passwords, signing keys, collaboration keys, the operator and metrics tokens and the backup key. The API gets only its own share, and the Worker only the values it checks with. None of them are in the env files.
+The server has one secret of its own, `MISTY_SERVER_SECRET`, in the `secrets` volume. Setup derives every key from it: database passwords, signing keys, the operator and metrics tokens and the backup key. The API gets only its own share. None of them are in the env files.
 
 If you lose the volume but keep the database, setup stops with `secrets lost`. New keys would sign everyone out and make encrypted data unreadable.
 
@@ -121,12 +121,11 @@ docker compose run --rm setup retire MISTY_AUTH_SIGNING_KEY
 
 | Rotates | With |
 | --- | --- |
-| `MISTY_AUTH_SIGNING_KEY`, `MISTY_OPERATOR_TOKEN`, `JOURNAL_COLLAB_CONTROL_SECRET`, `JOURNAL_COLLAB_PROJECTION_SECRET` | The old value stays valid in its `*_PREVIOUS` slot until you retire it. |
-| `JOURNAL_COLLAB_TICKET_PRIVATE_KEY` | The old public key stays valid until you retire it. |
+| `MISTY_AUTH_SIGNING_KEY`, `MISTY_OPERATOR_TOKEN` | The old value stays valid in its `*_PREVIOUS` slot until you retire it. |
 | `DB_MIGRATION_PASSWORD` | The next start moves the database onto the new password. Retire the old one after that. |
 | `DB_PASSWORD`, `MISTY_METRICS_TOKEN` | Nothing: the next start applies the new value everywhere. |
 
-Keys that protect stored data can't be rotated. These are the Space link key (`SPACE_LINK_ENCRYPTION_KEY`), the collaboration room salt (`JOURNAL_COLLAB_ROOM_SALT`) and the backup key (`MISTY_BACKUP_AGE_IDENTITY`).
+Keys that protect stored data can't be rotated. These are the Space link key (`SPACE_LINK_ENCRYPTION_KEY`) and the backup key (`MISTY_BACKUP_AGE_IDENTITY`).
 
 To give a service you run beside the server its operator token, run `docker compose run --rm setup operator-token`, or mount the `secrets` volume and read `operator/token`. To keep a copy of the backup key, run `docker compose run --rm setup backup-key`.
 
@@ -139,7 +138,7 @@ docker compose run --rm setup adopt-root
 docker compose up -d --force-recreate
 ```
 
-Each moved key keeps its old value valid in its `*_PREVIOUS` slot. Retire each one once old sessions have expired. The three keys that protect stored data stay as they are. To move them too, add `--discard-data`, which makes shared links and older backups unreadable. Only use it on a server with no data you need.
+Each moved key keeps its old value valid in its `*_PREVIOUS` slot. Retire each one once old sessions have expired. The two keys that protect stored data stay as they are. To move them too, add `--discard-data`, which makes shared links and older backups unreadable. Only use it on a server with no data you need.
 
 `CLOUDFLARE_ZONE_ID` and `CLOUDFLARE_ACCOUNT_ID` can stay in `cloudflare.env`. `MISTY_SERVER_VERSION` in `misty.env` is no longer read, because published images report their own commit. When you build on the server, run `MISTY_SERVER_VERSION=$(git rev-parse HEAD) docker compose up -d --build`.
 

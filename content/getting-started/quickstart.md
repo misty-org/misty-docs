@@ -9,7 +9,7 @@ This guide takes you from installing Misty to working with your first agent and 
 
 ## Before you start
 
-You'll need an engine you can sign in to. Claude Code works with a Claude plan, and Codex works with a ChatGPT account. Antigravity is free with a Google account, and OpenCode needs no account at all.
+You'll need an engine you can sign in to. Claude Code works with a Claude plan, and Codex works with a ChatGPT account. Antigravity is free with a Google account.
 
 ## 1. Install Misty
 

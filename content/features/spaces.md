@@ -41,7 +41,7 @@ The space's home page links to each part:
 - **Code**: your projects, where your agents write and review code.
 - **Apps**: open-source apps the space added, such as PhotoCraft, DeckCraft or SoundCraft. Each runs sandboxed inside Misty with the space's files, and people work in it together, live. Your agents work in it too, with their own pointer in your window.
 
-To add an app, a space's mods open **Explore**, choose **Apps**, select **Add from GitHub** and paste the app's repository link. To add a file, drop it into **Files**, here or in the space's folder on your computer.
+To add an app, a space's mods open **Explore**, choose **Apps** and pick one from Misty's reviewed list. To add a file, drop it into **Files**, here or in the space's folder on your computer.
 
 ## Work with agents in a space
 

@@ -53,13 +53,13 @@ Practise a restore on a spare server, so you know it works before you need it.
 
 - `docker compose down` stops the server. All data and secrets are kept.
 - `docker compose down --volumes` deletes the database and the secrets. This can't be undone.
-- The tunnel, R2 buckets and Worker stay in your Cloudflare account until you delete them there.
+- The tunnel and R2 buckets stay in your Cloudflare account until you delete them there. A server set up before Misty moved live co-editing off Cloudflare also left a Worker there, named `misty-<host>-collab`, which you can delete.
 
 ## Change the server's code
 
 Misty is licensed under the [GNU AGPL-3.0-or-later](https://mistysys.com/license). Running Misty unchanged, or changing it only for yourself, needs nothing extra.
 
-If you change the server or its Worker and let other people use it:
+If you change the server and let other people use it:
 
 - Offer those people the source code of your version, under the same license. A link on your sign-in page works.
 - Give your version its own name and logo. You can say it's based on Misty.

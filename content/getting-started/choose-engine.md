@@ -11,16 +11,13 @@ Misty never charges for AI. You pay the engine's maker, if anything, on your own
 
 ## Engines you can use
 
-These four are the easiest to start with:
+Misty works with these three:
 
 | Engine | What you need | What it costs |
 | --- | --- | --- |
 | Claude Code | A Claude plan from Anthropic | Your Claude plan |
 | Codex | A ChatGPT account from OpenAI | Your ChatGPT plan |
 | Antigravity | A Google account | Free |
-| OpenCode | Nothing | Free |
-
-Misty also works with Gemini CLI, Qwen Code, Kimi CLI, Grok CLI, MiniMax Code, Qoder CLI, CodeBuddy, Pi, Oh My Pi, DeepSeek Harness and Hermes Agent.
 
 ## Set up an engine
 
