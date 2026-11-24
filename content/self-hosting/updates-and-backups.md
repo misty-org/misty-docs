@@ -24,7 +24,7 @@ Update the Misty app on each computer too. A much older app may not work with a 
 The server backs up its database every night at 03:00 UTC. You don't need to set anything up.
 
 - Each backup is encrypted with the server's backup key, using [age](https://age-encryption.org).
-- Backups go to the `misty-<host>-backups` bucket in R2. Nothing on the server can delete them for 30 days.
+- Backups go to the `misty-db-backups` bucket in R2. Nothing on the server can delete them for 30 days.
 - Files in spaces live in a separate R2 bucket. They aren't part of the database backup.
 
 Back up now, list backups, copy the backup key:

@@ -7,7 +7,7 @@ order: 2
 
 ## What it's for
 
-Every Misty server runs on your own Cloudflare account. A Cloudflare Tunnel publishes the API at `https://MISTY_HOSTNAME` with no open ports. R2 holds Library files and the nightly backups. Live co-editing runs on your server, in its `misty-collab` service, not on Cloudflare.
+Every Misty server runs on your own Cloudflare account. A Cloudflare Tunnel publishes the API at `https://MISTY_HOSTNAME` with no open ports. R2 holds the Space drive's files and the nightly backups. Live co-editing runs on your server, in its `misty-collab` service, not on Cloudflare.
 
 You give the setup container one API token. It finds the zone that holds `MISTY_HOSTNAME` among the zones the token can see, and the account from the zone. On every start it creates whatever is missing and finds what it made before by name, so it never makes a second copy. You never run the `misty` CLI.
 
@@ -37,15 +37,15 @@ Create an account API token with exactly these permissions, limited to your acco
 
 ## What the setup container makes
 
-Names come from `MISTY_HOSTNAME`, with dots as dashes; a hostname longer than 40 characters is shortened. A DNS record for your hostname that points anywhere else is yours, and setup stops without changing it. If Cloudflare can't be reached on a start whose settings already worked, setup logs a warning and the stack starts on what it recorded.
+The tunnel's name comes from `MISTY_HOSTNAME`, with dots as dashes; a hostname longer than 40 characters is shortened. The buckets and tokens have fixed names, so one Cloudflare account holds one Misty server. A DNS record for your hostname that points anywhere else is yours, and setup stops without changing it. If Cloudflare can't be reached on a start whose settings already worked, setup logs a warning and the stack starts on what it recorded.
 
 | Part | Name | What it does |
 | --- | --- | --- |
 | Tunnel | `misty-<host>` | Publishes the API with no open ports; `cloudflared` in the stack connects it. |
 | DNS record | `MISTY_HOSTNAME` | A proxied CNAME to the tunnel. |
-| Library bucket | `misty-<host>-library` | Uploads, attachments, avatars, and images in notes. |
-| Backup bucket | `misty-<host>-backups` | Encrypted nightly database dumps, under a 30-day lock. |
-| Two R2 tokens | `misty-<host> library`, `misty-<host> backups` | One bucket each; the API holds only the Library one. |
+| Space drive bucket | `misty-space-drive` | Uploads, attachments, avatars, and images in notes. |
+| Backup bucket | `misty-db-backups` | Encrypted nightly database dumps, under a 30-day lock. |
+| Two R2 tokens | `misty space drive`, `misty db backups` | One bucket each; the API holds only the space drive one. |
 
 ## Get the values
 
