@@ -18,7 +18,6 @@ import {
   ErrorState,
   IconButton,
   Mark,
-  NavList,
   NavRow,
   NavRowLabel,
   PaneLoading,
