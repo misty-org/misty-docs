@@ -20,7 +20,7 @@ Bring the AI you already use, such as Claude Code or Codex. Invite your team. Ev
 
 Spaces and accounts live on a Misty server. You can use ours or run your own.
 
-- **Misty Cloud** is our server. It's free, with nothing to set up. See [Plans and Boosts](#/account/plans) for more storage and bigger spaces.
+- **Misty Cloud** is our server. It's free, with nothing to set up. See [Plans](#/account/plans) for more storage.
 - **Your own server** has every feature with no limits. See [Set up a server](#/self-hosting/set-up-a-server).
 
 Misty is free and open source under the AGPL-3.0 license. Misty never charges for AI, because your agents run on your own plans.

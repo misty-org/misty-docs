@@ -63,10 +63,6 @@ New items are shared with everyone in the space. To keep one to yourself, open i
 
 On the home page, choose **Yours** to see only what you made.
 
-## Boost a space
-
-On Misty Cloud, each space has a level. The People list shows the level and a **Boost** button. See [Plans and Boosts](#/account/plans).
-
 ## Leave or delete a space
 
 - **Leave**: open the **⋯** menu and choose **Leave Space**.

@@ -18,7 +18,7 @@ npm run build   # writes dist/, plain static files
 ```
 
 The user docs were converted from `misty-website/src/pages/Docs/`. Pages link to each other as `#/<section>/<page>`.
-The plan and level numbers in `content/account/plans.md` and `content/reference/space-levels.md` are copied from
-`misty-website/src/pages/Pricing/plans.ts`; change them together.
+The plan numbers in `content/account/plans.md` are copied from `misty-website/src/pages/Pricing/plans.ts`; change them
+together.
 
-Still to come: pointing `docs.mistysys.com` here.
+`npm run deploy` builds the site and publishes it to `docs.mistysys.com` as the `misty-docs` Worker (`wrangler.jsonc`).

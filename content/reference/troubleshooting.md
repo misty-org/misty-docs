@@ -31,10 +31,8 @@ Get a sign-in link from [Sign in](https://mistysys.com/sign-in), then open it in
 Your account or the space has reached a limit. Nothing is lost, and everything still opens.
 
 1. To free up room, delete files you no longer need.
-2. On Misty Cloud, get Misty+ for more storage, or boost the space to raise its limits. See [Plans and Boosts](#/account/plans).
+2. On Misty Cloud, get Pro or Max for more storage. See [Plans](#/account/plans).
 3. On your own server, ask whoever runs it.
-
-[Space levels](#/reference/space-levels) lists every limit.
 
 ## The Studio doesn't show the room
 

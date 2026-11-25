@@ -15,7 +15,7 @@ Misty Cloud is free, with nothing to set up.
 2. Select **Continue with Misty Cloud**.
 3. Enter your email and password, or continue with Google.
 
-For more storage or bigger spaces, see [Plans and Boosts](#/account/plans).
+For more storage, see [Plans](#/account/plans).
 
 ## Use your own server
 
