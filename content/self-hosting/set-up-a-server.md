@@ -93,8 +93,7 @@ docker compose logs setup
 | `misty-collab` | Always | Live co-editing: the rooms where people and agents edit apps' documents and files together. |
 | `cloudflared` | Always | Publishes the API at `https://MISTY_HOSTNAME` through the Tunnel. |
 | `backups` | Always | Encrypted database backups to R2 every night at 03:00 UTC. |
-| `alerts` | Always | Records an alert when the API fails its health check, fails 5% of requests, runs low on disk or misses a backup. The console and the owner's app show it. Nothing is emailed. |
-| `console` | Always, on `127.0.0.1:7070` only | The operator console. |
+| `alerts` | Always | Records an alert when the API fails its health check, fails 5% of requests, runs low on disk or misses a backup. The owner's app shows it. Nothing is emailed. |
 
 `misty-collab` runs from the same image as the API, and the tunnel sends `/v1/collab` on your hostname to it, so live co-editing needs nothing on Cloudflare and nothing to set up.
 
@@ -154,13 +153,20 @@ Each moved key keeps its old value valid in its `*_PREVIOUS` slot. Retire each o
 ## Accounts on your server
 
 - The first account created on a new server owns it.
-- After that, people can sign up only with an open space invitation, or when you create their account in the console.
+- After that, people can sign up only with an open space invitation, or when you create their account with the operator API.
 - To allow only certain people, set `MISTY_ALLOWED_EMAILS` in misty.env to a comma-separated list. The owner can always sign in.
 - People sign in with an email and password stored on your server, or with Google through your own `google.env`.
 
 To let someone in, or back in after a forgotten password:
 
-1. Open the operator console and choose their account.
-2. Copy its sign-in link and send it to them. With email set up, the server sends it for you.
+1. On the server, find their account and ask for a new sign-in link with the operator API, which listens on `127.0.0.1:8081`:
 
-The console runs on the server at `127.0.0.1:7070`. Its sign-in link is in `docker compose logs console`. To open it from another computer, forward the port: `ssh -L 7070:127.0.0.1:7070 you@server`.
+   ```sh
+   token=$(docker compose run --rm setup operator-token)
+   curl -s -H "Authorization: Bearer $token" "http://127.0.0.1:8081/operator/v1/accounts?email=ana@example.com"
+   curl -s -X POST -H "Authorization: Bearer $token" "http://127.0.0.1:8081/operator/v1/accounts/ACCOUNT_ID/setup-key"
+   ```
+
+2. Send them the `setup_link` from the answer. With email set up, the server sends it for you.
+
+To create an account, `POST /operator/v1/accounts` with their email.
