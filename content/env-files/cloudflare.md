@@ -52,11 +52,11 @@ The tunnel's name comes from `MISTY_HOSTNAME`, with dots as dashes; a hostname l
 1. Sign in at [dash.cloudflare.com](https://dash.cloudflare.com), add your domain and change its nameservers to the ones Cloudflare shows. Wait until the domain says Active.
 2. Open R2 Object Storage and turn it on.
 3. Create an account API token with the permissions above, limited to your account and zone. Copy it; Cloudflare shows it once.
-4. Write the token into `~/.misty/.env/server/cloudflare.env`.
+4. Write the token into `cloudflare.env` in your server's settings folder, `~/.misty/rel/<version>/.env/server/` ([The files](#/self-hosting/set-up-a-server)).
 
 ```bash
-# ~/.misty/.env/server/cloudflare.env
+# ~/.misty/rel/<version>/.env/server/cloudflare.env
 CLOUDFLARE_API_TOKEN=<your API token>
 ```
 
-Keep the file out of Git. Misty's `.gitignore` already ignores everything under `~/.misty/.env/server/`.
+The file lives in your server's own folder, outside every repository, so it never lands in Git.

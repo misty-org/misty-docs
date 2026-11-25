@@ -31,12 +31,12 @@ Add `https://MISTY_HOSTNAME/v1/auth/google/callback` as an authorized redirect U
 3. Under Audience, choose External. While the app is in testing, only the test users you add can sign in; publish it to let anyone sign in.
 4. Under Data Access, add the `openid`, `email` and `profile` scopes.
 5. Under Clients, create a client of type Web application. Add your redirect URI under Authorized redirect URIs.
-6. Copy the client ID and client secret into `~/.misty/.env/server/google.env`.
+6. Copy the client ID and client secret into `google.env` in your server's settings folder, `~/.misty/rel/<version>/.env/server/` ([The files](#/self-hosting/set-up-a-server)).
 
 ```bash
-# ~/.misty/.env/server/google.env
+# ~/.misty/rel/<version>/.env/server/google.env
 GOOGLE_CLIENT_ID=<your client ID>.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=<your client secret>
 ```
 
-Keep the file out of Git. Misty's `.gitignore` already ignores everything under `~/.misty/.env/server/`.
+The file lives in your server's own folder, outside every repository, so it never lands in Git.

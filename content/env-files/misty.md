@@ -27,13 +27,13 @@ None. The hostname must be on a domain in your Cloudflare account ([cloudflare.e
 ## Get the values
 
 1. Choose the hostname for your server on a domain in your Cloudflare account, such as `misty.example.com`.
-2. Write it into `~/.misty/.env/server/misty.env` as `MISTY_HOSTNAME`.
+2. Write it as `MISTY_HOSTNAME` into `misty.env` in your server's settings folder, `~/.misty/rel/<version>/.env/server/` ([The files](#/self-hosting/set-up-a-server)).
 3. Add a name for the server if you want one.
 
 ```bash
-# ~/.misty/.env/server/misty.env
+# ~/.misty/rel/<version>/.env/server/misty.env
 MISTY_HOSTNAME=misty.example.com
 MISTY_INSTANCE_NAME=Home
 ```
 
-Keep the file out of Git. Misty's `.gitignore` already ignores everything under `~/.misty/.env/server/`.
+The file lives in your server's own folder, outside every repository, so it never lands in Git.

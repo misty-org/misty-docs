@@ -20,14 +20,20 @@ The Misty app only connects to servers on an https domain. Plain http, IP addres
 
 ## The files
 
-All your settings live in three files in `~/.misty/.env/server/`, one per service. Each file is plain `NAME=value` lines.
+All your settings live in three files, one per service, in your server's settings folder. Each file is plain `NAME=value` lines.
+
+That folder is `.env/server/` inside the folder `~/.misty/misty.conf` names, one for the version you run, such as `~/.misty/rel/1.0.0`. Nothing but `misty.conf` and those folders sits in `~/.misty` itself.
 
 ```bash
-~/.misty/.env/server/
-├── misty.env
-├── cloudflare.env
-└── google.env
+~/.misty/
+├── misty.conf          # misty.root = ~/.misty/rel/1.0.0
+└── rel/1.0.0/.env/server/
+    ├── misty.env
+    ├── cloudflare.env
+    └── google.env
 ```
+
+Compose can't read `misty.conf`, so it takes the folder from `MISTY_ENV_DIR`, and won't start without it. Every `docker compose` command on this page needs it, so export it in your shell's profile.
 
 | File | What it's for | Page |
 | --- | --- | --- |
@@ -42,14 +48,14 @@ All your settings live in three files in `~/.misty/.env/server/`, one per servic
 Without email, Misty gives you links to send to people yourself. With email, the server sends sign-in links, space invitations and email confirmations for you.
 
 1. In Mailjet, verify the address you'll send from, with its SPF and DKIM records.
-2. Create `~/.misty/.env/server/mailjet.env` with `MAILJET_API_KEY`, `MAILJET_SECRET_KEY` and `MAILJET_FROM_EMAIL`. You can also set `MAILJET_FROM_NAME`.
+2. Create `mailjet.env` in your settings folder with `MAILJET_API_KEY`, `MAILJET_SECRET_KEY` and `MAILJET_FROM_EMAIL`. You can also set `MAILJET_FROM_NAME`.
 3. Restart the API with `docker compose up -d api`.
 
 ## Voice and video calls (optional)
 
 Calls in direct messages and a Space's voice channels run through LiveKit on your server. They are end-to-end encrypted between people's computers, so neither your server nor LiveKit can hear or see them, and nothing of a call is kept. A call holds at most 8 people.
 
-1. Add `MISTY_CALLS=1` to `~/.misty/.env/server/misty.env`.
+1. Add `MISTY_CALLS=1` to `misty.env` in your settings folder.
 2. Open these ports on the server to the internet: UDP `3478` and `50000-50100`, and TCP `7881`. Calls carry their sound and video straight to the server, not through Cloudflare.
 3. Start the stack with calls: `docker compose --profile calls up -d`.
 
@@ -57,7 +63,7 @@ Setup derives LiveKit's key from the root secret and publishes LiveKit's signall
 
 ## Install
 
-1. Clone misty-server and create `~/.misty/.env/server/`, readable only by you.
+1. Clone misty-server, create your settings folder, readable only by you, and name its root in `~/.misty/misty.conf`.
 2. Write the three env files. Each file's page lists its values.
 3. Start the stack. The first start builds the images and takes a few minutes.
 4. Check the setup container's log. When the tunnel connects, `https://MISTY_HOSTNAME/health` answers.
@@ -66,8 +72,11 @@ Setup derives LiveKit's key from the root secret and publishes LiveKit's signall
 ```bash
 git clone https://github.com/misty-org/misty-server.git
 cd misty-server
-mkdir -p -m 700 ~/.misty/.env/server
-# write the three files under ~/.misty/.env/server/
+root=~/.misty/rel/1.0.0   # the version you run
+mkdir -p -m 700 "$root/.env/server"
+[ -e ~/.misty/misty.conf ] || printf '[metadata]\nmisty.manifest = v1\nmisty.root = %s\n' "$root" > ~/.misty/misty.conf
+export MISTY_ENV_DIR="$root/.env/server"
+# write the three files in $MISTY_ENV_DIR
 docker compose up -d --build
 docker compose ps
 docker compose logs setup
