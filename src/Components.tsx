@@ -1,7 +1,7 @@
 import React from "react";
-import { DocsTitle, InlineLink, Surface, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text, CodeBlock } from "@misty/ui";
+import { DocsHeading, DocsTitle, InlineLink, Surface, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text, CodeBlock } from "@misty/ui";
 
-import { loadGuidance, type Example, type PropDoc } from "./sources";
+import { loadGuidance, slugify, type Example, type PropDoc } from "./sources";
 
 const repository = "https://github.com/misty-org/misty-ui";
 
@@ -28,9 +28,7 @@ function Inline({ text }: { text: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="grid gap-3">
-      <Text as="h2" size="title" weight="semibold" tone="bright">
-        {title}
-      </Text>
+      <DocsHeading id={slugify(title)}>{title}</DocsHeading>
       {children}
     </section>
   );

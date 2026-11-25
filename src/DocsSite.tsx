@@ -4,11 +4,11 @@ import { BookOpen, Blocks, Moon, Palette, Sun } from "lucide-react";
 import {
   Button,
   CodeBlock,
-  Disclosure,
   DocsCard,
   DocsHeader,
   DocsHero,
   DocsLayout,
+  DocsNavGroup,
   DocsPager,
   DocsSearch,
   DocsSwitcher,
@@ -22,8 +22,6 @@ import {
   NavRow,
   NavRowLabel,
   PaneLoading,
-  Pressable,
-  Text,
 } from "@misty/ui";
 
 import { loadOnce } from "./load_once";
@@ -31,6 +29,7 @@ import { Markdown } from "./Markdown";
 import { allDocs, allExamples, componentGroups, sectionLines, sections, type Doc, type DocPage, type Example } from "./sources";
 
 const repository = "https://github.com/misty-org";
+const website = "https://mistysys.com";
 
 const GoContext = React.createContext<(route: string) => void>(() => {});
 const useGo = () => React.useContext(GoContext);
@@ -81,6 +80,11 @@ const firstPage = (product: Product) => product.groups.find((group) => group.ite
 
 function Sidebar({ product, route }: { product: Product; route: string }) {
   const go = useGo();
+  const row = (id: string, title: string) => (
+    <NavRow key={id} tone="page" current={route === id} onClick={() => go(id)}>
+      <NavRowLabel bright={route === id}>{title}</NavRowLabel>
+    </NavRow>
+  );
   return (
     <>
       <DocsSearch
@@ -89,31 +93,17 @@ function Sidebar({ product, route }: { product: Product; route: string }) {
         )}
         onSelect={go}
       />
-      <NavList>
-        <NavRow current={route === ""} onClick={() => go("")}>
-          <NavRowLabel bright={route === ""}>Overview</NavRowLabel>
-        </NavRow>
-      </NavList>
-      <div className="grid gap-2">
-        {product.groups.map((group) => (
-          <Disclosure
-            key={`${product.id}/${group.id}`}
-            kind="row"
-            title={group.title}
-            defaultOpen={group.items.some((item) => item.id === route) || group === product.groups[0]}
-          >
-            <div className="pt-1.5 pb-1">
-              <NavList>
-                {group.items.map((item) => (
-                  <NavRow key={item.id} current={route === item.id} onClick={() => go(item.id)}>
-                    <NavRowLabel bright={route === item.id}>{item.title}</NavRowLabel>
-                  </NavRow>
-                ))}
-              </NavList>
-            </div>
-          </Disclosure>
-        ))}
-      </div>
+      <DocsNavGroup>{row("", "Overview")}</DocsNavGroup>
+      {product.groups.map((group, index) => (
+        <DocsNavGroup
+          key={`${product.id}/${group.id}`}
+          title={group.title}
+          defaultOpen={index === 0}
+          open={group.items.some((item) => item.id === route)}
+        >
+          {group.items.map((item) => row(item.id, item.title))}
+        </DocsNavGroup>
+      ))}
     </>
   );
 }
@@ -125,7 +115,7 @@ function Home() {
   const guides = products.find((product) => product.id === "guides");
   const sdk = products.find((product) => product.id === "sdk");
   return (
-    <div className="pb-24">
+    <div>
       <DocsHero
         title="Build with Misty"
         lead="Use Misty with your team, build apps that run inside a Space, and make anything that looks like Misty."
@@ -145,7 +135,7 @@ function Home() {
         }
         aside={<CodeBlock header="terminal" language="bash" code={"npm install @misty/sdk\nnpm install @misty/ui lucide-react"} />}
       />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 min-[90rem]:grid-cols-3">
         {products.map((product) => (
           <DocsCard
             key={product.id}
@@ -161,11 +151,35 @@ function Home() {
   );
 }
 
-function useActiveHeading(page: DocPage | undefined) {
+interface Heading {
+  id: string;
+  text: string;
+}
+
+function useArticleHeadings(route: string): Heading[] {
+  const [headings, setHeadings] = React.useState<Heading[]>([]);
+  React.useEffect(() => {
+    const article = document.getElementById("docs-article");
+    if (!article) return;
+    const read = () => {
+      const found = [...article.querySelectorAll("h2[id]")].map((h) => ({ id: h.id, text: h.textContent ?? "" }));
+      setHeadings((current) =>
+        current.length === found.length && current.every((h, i) => h.id === found[i].id && h.text === found[i].text) ? current : found,
+      );
+    };
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(article, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [route]);
+  return headings;
+}
+
+function useActiveHeading(headings: Heading[]) {
   const [active, setActive] = React.useState<string | undefined>();
   React.useEffect(() => {
-    setActive(page?.headings[0]?.id);
-    const targets = (page?.headings ?? []).map((h) => document.getElementById(h.id)).filter((el): el is HTMLElement => !!el);
+    setActive(headings[0]?.id);
+    const targets = headings.map((h) => document.getElementById(h.id)).filter((el): el is HTMLElement => !!el);
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
@@ -175,7 +189,7 @@ function useActiveHeading(page: DocPage | undefined) {
     );
     targets.forEach((target) => observer.observe(target));
     return () => observer.disconnect();
-  }, [page]);
+  }, [headings]);
   return active;
 }
 
@@ -203,11 +217,9 @@ function useDocPage(doc: Doc | undefined) {
 
 function DocArticle({ doc, page, group }: { doc: Doc; page: DocPage; group: string | undefined }) {
   return (
-    <article className="min-w-0 max-w-3xl">
+    <article className="min-w-0">
       <DocsTitle eyebrow={group} title={doc.title} lead={page.description} />
-      <div className="mt-10">
-        <Markdown source={page.body} />
-      </div>
+      <Markdown source={page.body} />
     </article>
   );
 }
@@ -295,7 +307,8 @@ export function DocsSite({
   const doc = allDocs.find((item) => item.id === route);
   const example = exampleForRoute(route);
   const { page, failed, retry } = useDocPage(doc);
-  const active = useActiveHeading(page);
+  const headings = useArticleHeadings(route);
+  const active = useActiveHeading(headings);
 
   const pages = product?.groups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.title }))) ?? [];
   const index = pages.findIndex((page) => page.id === route);
@@ -316,15 +329,13 @@ export function DocsSite({
       }
     >
     <DocsLayout
+      page={route}
+      navLabel={pages[index]?.title ?? example?.title ?? (route === "" ? "Overview" : "Menu")}
       header={
         !bar ? undefined : <DocsHeader
-          brand={
-            <Pressable wash="text" onClick={() => go("")}>
-              <Text size="control" weight="semibold" tone="bright">
-                Docs
-              </Text>
-            </Pressable>
-          }
+          home={{ href: website, label: "Misty" }}
+          name="Docs"
+          onName={() => go("")}
           sections={products.map((item) => ({ id: item.id, label: item.label }))}
           current={product?.id ?? products[0]?.id}
           onSelect={(id) => go(firstPage(products.find((item) => item.id === id)!))}
@@ -339,19 +350,23 @@ export function DocsSite({
               <Mark of="github" label="GitHub" />
             </a>
           </IconButton>
+          <Button size="sm" variant="primary" asChild>
+            <a href={`${website}/download`}>Download</a>
+          </Button>
         </DocsHeader>
       }
       nav={product || route === "" ? <Sidebar product={product ?? products[0]} route={route} /> : undefined}
       toc={
-        page && page.headings.length > 1 ? (
+        headings.length ? (
           <DocsToc
-            items={page.headings}
+            items={headings}
             active={active}
             onSelect={(id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })}
           />
         ) : undefined
       }
     >
+      <div id="docs-article" className="contents">
       {doc ? (
         page ? (
           <DocArticle doc={doc} page={page} group={groupOfPage} />
@@ -371,6 +386,7 @@ export function DocsSite({
       ) : (
         <EmptyState title="Page not found" />
       )}
+      </div>
       <div className="flex-1" />
       <DocsPager previous={link(pages[index - 1], groupOfPage)} next={link(pages[index + 1], groupOfPage)} />
     </DocsLayout>
@@ -383,6 +399,8 @@ export function DocsNavControls({ route, onNavigate }: { route: string; onNaviga
   const current = productOf(route)?.id ?? products[0]?.id;
   return (
     <DocsSwitcher
+      slash={false}
+      size="page"
       sections={products.map((item) => ({ id: item.id, label: item.label }))}
       current={current}
       onSelect={(id) => onNavigate(firstPage(products.find((item) => item.id === id)!))}

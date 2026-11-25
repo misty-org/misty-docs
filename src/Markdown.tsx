@@ -1,6 +1,6 @@
 import { Info } from "lucide-react";
 import { marked, type Token } from "marked";
-import { CodeBlock, Prose, ProseCallout, Text } from "@misty/ui";
+import { CodeBlock, DocsHeading, Prose, ProseCallout } from "@misty/ui";
 import type { CodeLanguage } from "@misty/ui";
 
 import { slugify } from "./sources";
@@ -31,7 +31,7 @@ const asTokens = (tokens: Token[]) => Object.assign(tokens, { links: {} });
 
 /**
  * A page's Markdown, drawn with the system's own pieces: code fences are a CodeBlock (colored by
- * language), a quote is a callout, headings are anchored Text, and the rest is Prose.
+ * language), a quote is a callout, headings are anchored DocsHeadings, and the rest is Prose.
  */
 export function Markdown({ source }: { source: string }) {
   const groups: Group[] = [];
@@ -50,19 +50,15 @@ export function Markdown({ source }: { source: string }) {
     }
   }
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-4">
       {groups.map((group, index) => {
         if (group.kind === "code") return <CodeBlock key={index} code={group.code} language={group.language} header={group.language === "bash" ? "terminal" : group.language} />;
         if (group.kind === "heading") {
           const id = slugify(group.text);
-          return group.depth <= 2 ? (
-            <Text key={index} as="h2" id={id} size="title" weight="semibold" tone="bright" wrap className="mt-6 scroll-mt-20">
+          return (
+            <DocsHeading key={index} id={id} level={group.depth <= 2 ? 2 : 3}>
               {group.text}
-            </Text>
-          ) : (
-            <Text key={index} as="h3" id={id} size="page" weight="semibold" tone="bright" wrap className="mt-2 scroll-mt-20">
-              {group.text}
-            </Text>
+            </DocsHeading>
           );
         }
         // The Markdown is the repositories' own, built into the site; it is not user input.
@@ -72,7 +68,7 @@ export function Markdown({ source }: { source: string }) {
             <div dangerouslySetInnerHTML={{ __html: html }} />
           </ProseCallout>
         ) : (
-          <Prose key={index} size="page">
+          <Prose key={index} size="body">
             <div dangerouslySetInnerHTML={{ __html: html }} />
           </Prose>
         );
