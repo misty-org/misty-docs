@@ -7,7 +7,7 @@ order: 2
 
 ## What it's for
 
-Every Misty server runs on your own Cloudflare account. A Cloudflare Tunnel publishes the API at `https://MISTY_HOSTNAME` with no open ports. R2 holds the Space drive's files and the nightly backups. Live co-editing runs on your server, in its `misty-collab` service, not on Cloudflare.
+Every Misty server runs on your own Cloudflare account. A Cloudflare Tunnel publishes the API at `https://MISTY_HOSTNAME` with no open ports. R2 holds the Space drive's files and the nightly backups. Live co-editing runs on your server, in the API, not on Cloudflare.
 
 You give the setup container one API token. It finds the zone that holds `MISTY_HOSTNAME` among the zones the token can see, and the account from the zone. On every start it creates whatever is missing and finds what it made before by name, so it never makes a second copy. You never run the `misty` CLI.
 

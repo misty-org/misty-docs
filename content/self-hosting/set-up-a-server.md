@@ -59,7 +59,7 @@ Calls in direct messages and a Space's voice channels run through LiveKit on you
 2. Open these ports on the server to the internet: UDP `3478` and `50000-50100`, and TCP `7881`. Calls carry their sound and video straight to the server, not through Cloudflare.
 3. Start the stack with calls: `docker compose --profile calls up -d`.
 
-Setup derives LiveKit's key from the root secret and publishes LiveKit's signalling through your tunnel, at a sibling of your hostname: `misty-calls.example.com` beside `misty.example.com`. The app shows call buttons once the server answers that calls are on.
+Setup derives LiveKit's key from the root secret, and the API forwards calls signalling from `https://MISTY_HOSTNAME/v1/calls`, so calls need no hostname of their own. The app shows call buttons once the server answers that calls are on.
 
 ## Install
 
@@ -89,13 +89,12 @@ docker compose logs setup
 | `setup` | Once per start | Generates the root secret, checks it against your data, provisions Cloudflare. |
 | `postgres` | Always | The database (PostgreSQL with pgvector). |
 | `migrate` | Once per start | Applies database migrations. |
-| `api` | Always | Accounts, spaces, chat, files and the apps each space adds. |
-| `misty-collab` | Always | Live co-editing: the rooms where people and agents edit apps' documents and files together. |
+| `api` | Always | Accounts, spaces, chat, files and the apps each space adds, and live co-editing: the rooms at `/v1/collab` where people and agents edit apps' documents and files together. |
 | `cloudflared` | Always | Publishes the API at `https://MISTY_HOSTNAME` through the Tunnel. |
 | `backups` | Always | Encrypted database backups to R2 every night at 03:00 UTC. |
 | `alerts` | Always | Records an alert when the API fails its health check, fails 5% of requests, runs low on disk or misses a backup. The owner's app shows it. Nothing is emailed. |
 
-`misty-collab` runs from the same image as the API, and the tunnel sends `/v1/collab` on your hostname to it, so live co-editing needs nothing on Cloudflare and nothing to set up.
+The tunnel sends your hostname to the API and nothing else: the rooms and calls signalling are paths on it, so live co-editing and calls need nothing more on Cloudflare.
 
 ## The setup container
 
